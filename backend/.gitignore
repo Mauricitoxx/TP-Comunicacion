@@ -1,0 +1,17 @@
+# Dependencias de Python
+venv/
+.env
+
+# Archivos de base de datos
+*.db
+
+# Archivos temporales de Python
+*.pyc
+__pycache__/
+
+# Carpetas de uploads y logs
+uploads/
+logs/
+
+# Archivos de configuración local
+.env
