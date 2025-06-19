@@ -19,15 +19,36 @@ const [age, setAge] = useState('');
 const [bitDepth, setBitDepth] = useState('');
 const [selectedImage, setSelectedImage] = useState(null);
 const [selectedImageUrl, setSelectedImageUrl] = useState(null);
+const [imageId, setImageId] = useState(null);
+const [processedImageUrl, setProcessedImageUrl] = useState(null);
 
-const CargarImagen = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        setSelectedImage(file);
-        setSelectedImageUrl(URL.createObjectURL(file));
-        console.log('Imagen seleccionada:', file);
+
+
+const CargarImagen = async (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    setSelectedImage(file);
+    setSelectedImageUrl(URL.createObjectURL(file));
+    console.log('Imagen seleccionada:', file);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("http://localhost:8000/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      console.log("ID de imagen subida:", data.image_id);
+      // guardalo en un estado para luego procesarla
+      setImageId(data.image_id);
+    } catch (error) {
+      console.error("Error al subir imagen:", error);
     }
+  }
 };
+
   const [checked, setChecked] = useState(true);
 
 // Estados para el botón de procesar
@@ -50,16 +71,48 @@ useEffect(() => {
   };
 }, []);
 
-const handleProcessClick = () => {
-  if (!loading) {
-    setSuccess(false);
-    setLoading(true);
-    timer.current = setTimeout(() => {
-      setSuccess(true);
-      setLoading(false);
-    }, 2000);
+const handleProcessClick = async () => {
+  if (!imageId || !bitDepth || !age) {
+    alert("Faltan datos: asegúrate de haber subido la imagen y elegido resolución y profundidad.");
+    return;
+  }
+
+  setSuccess(false);
+  setLoading(true);
+
+  const resolutionMap = {
+    10: "800x600",
+    20: "1024x800",
+    30: "1280x720",
+    40: "1360x760",
+    50: "1366x768",
+  };
+
+  const resolution = resolutionMap[age];
+  const bits = Number(bitDepth);
+  const endpoint = checked
+    ? `http://localhost:8000/image/${imageId}/compressed?resolution=${resolution}&bits_per_channel=${bits}&quality=70`
+    : `http://localhost:8000/image/${imageId}/digitized?resolution=${resolution}&bits_per_channel=${bits}`;
+
+  console.log("Procesando imagen con ID:", imageId);
+  console.log("Usando resolución:", resolution);
+  console.log("Usando bits por canal:", bitDepth);
+  console.log("Endpoint:", endpoint);
+
+  
+    try {
+    const response = await fetch(endpoint);
+    const blob = await response.blob();
+    const imageUrl = URL.createObjectURL(blob);
+    setProcessedImageUrl(imageUrl);
+    setSuccess(true);
+  } catch (error) {
+    console.error("Error al procesar imagen:", error);
+  } finally {
+    setLoading(false);
   }
 };
+
 
   const clickCompresion = (event) => {
     setChecked(event.target.checked);
@@ -314,7 +367,21 @@ return (
               {loading ? (
                 <CircularProgress size={48} sx={{ color: green[500] }} />
               ) : (
-                <span style={{ color: '#fff' }}>Imagen procesada</span>
+                processedImageUrl ? ( // <-- LÍNEA AGREGADA / MODIFICADA
+                  <img
+                    src={processedImageUrl}
+                    alt="Processed"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '260px',
+                      objectFit: 'contain',
+                      display: 'block',
+                      borderRadius: '8px'
+                    }}
+                  />
+                ) : (
+                  <span style={{ color: '#fff' }}>Imagen procesada</span>
+                )
               )}
             </div>
           </div>
