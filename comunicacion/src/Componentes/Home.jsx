@@ -13,6 +13,7 @@ import { green } from '@mui/material/colors';
 import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
 import fondo from '../images/fondo.png';
+import Alert from '@mui/material/Alert';
 
 const Home = () => {
 const [age, setAge] = useState('');
@@ -35,7 +36,7 @@ const CargarImagen = async (event) => {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8000/upload", {
+      const response = await fetch("https://tp-comunicacion.onrender.com/upload", {
         method: "POST",
         body: formData,
       });
@@ -54,6 +55,7 @@ const CargarImagen = async (event) => {
 // Estados para el botón de procesar
 const [loading, setLoading] = useState(false);
 const [success, setSuccess] = useState(false);
+const [errorAlert, setErrorAlert] = useState(false);
 const timer = useRef();
 
 const buttonSx = {
@@ -73,7 +75,8 @@ useEffect(() => {
 
 const handleProcessClick = async () => {
   if (!imageId || !bitDepth || !age) {
-    alert("Faltan datos: asegúrate de haber subido la imagen y elegido resolución y profundidad.");
+    setErrorAlert(true);
+    setTimeout(() => setErrorAlert(false), 3500);
     return;
   }
 
@@ -91,8 +94,8 @@ const handleProcessClick = async () => {
   const resolution = resolutionMap[age];
   const bits = Number(bitDepth);
   const endpoint = checked
-    ? `http://localhost:8000/image/${imageId}/compressed?resolution=${resolution}&bits_per_channel=${bits}&quality=70`
-    : `http://localhost:8000/image/${imageId}/digitized?resolution=${resolution}&bits_per_channel=${bits}`;
+    ? `https://tp-comunicacion.onrender.com/image/${imageId}/compressed?resolution=${resolution}&bits_per_channel=${bits}&quality=70`
+    : `https://tp-comunicacion.onrender.com/image/${imageId}/digitized?resolution=${resolution}&bits_per_channel=${bits}`;
 
   console.log("Procesando imagen con ID:", imageId);
   console.log("Usando resolución:", resolution);
@@ -128,6 +131,33 @@ const handleProcessClick = async () => {
 
 return (
     <div style={{ minHeight: '100vh', width: '100vw', backgroundImage: `url(${fondo})`, backgroundSize: 'cover', backgroundPosition: 'center', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
+      {/* Alerta flotante arriba de todo */}
+      {errorAlert && (
+        <Box sx={{
+          position: 'fixed',
+          top: 24,
+          left: 0,
+          width: '100vw',
+          display: 'flex',
+          justifyContent: 'center',
+          zIndex: 2000,
+          pointerEvents: 'none'
+        }}>
+          <Alert
+            variant="filled"
+            severity="error"
+            sx={{
+              width: 'fit-content',
+              minWidth: 320,
+              maxWidth: '90vw',
+              pointerEvents: 'auto',
+              boxShadow: 3
+            }}
+          >
+            Faltan datos: asegúrate de haber subido la imagen y elegido resolución y profundidad.
+          </Alert>
+        </Box>
+      )}
       <div className="entorno" style={{fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
         <Bar/>
         <div className="titulo">
@@ -185,7 +215,7 @@ return (
                 }}
               >
                 <InputLabel style={{color:'white'}}id="demo-simple-select-label">Largo x Altura</InputLabel>
-                <Select style={{ width: '202px' }}
+                <Select style={{ width: '202px', color:'white'}}
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
                   value={age}
@@ -253,7 +283,7 @@ return (
             </div>
           </div>
           {/* Botón de procesar */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px', width: '100%' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '8px', width: '100%' }}>
             <Box sx={{ m: 1, position: 'relative' }}>
               <Button
                 variant="contained"
