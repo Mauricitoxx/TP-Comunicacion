@@ -12,6 +12,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { green } from '@mui/material/colors';
 import CheckIcon from '@mui/icons-material/Check';
 import SaveIcon from '@mui/icons-material/Save';
+import fondo from '../images/fondo.png';
+
 const Home = () => {
 const [age, setAge] = useState('');
 const [bitDepth, setBitDepth] = useState('');
@@ -72,22 +74,22 @@ const handleProcessClick = () => {
   };
 
 return (
-    <div>
+    <div style={{ minHeight: '100vh', width: '100vw', backgroundImage: `url(${fondo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       <div className="entorno">
         <Bar/>
         <div className="titulo">
-          <h1 className="texttitle" style={{ textAlign: 'center' }}>Digitalizador de imagenes</h1>
+          <h1 className="texttitle" style={{ textAlign: 'center', color: 'white' }}>Digitalizador de imagenes</h1>
         </div>
         <Stack direction="row" spacing={2} style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', top: '20px' }}>
           <input
             accept="image/*"
-            style={{ display: 'none' }}
+            style={{ display: 'none', }}
             id="upload-image"
             type="file"
             onChange={CargarImagen}
           />
           <label htmlFor="upload-image">
-            <Button variant="contained" component="span">
+            <Button style={{marginBottom: '30px '}}variant="contained" component="span">
               CARGAR IMAGEN
             </Button>
           </label>
@@ -113,9 +115,22 @@ return (
           }}>
             {/* Resolución */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '202px' }}>
-              <h3 style={{margin: 0, textAlign: 'center', width: '100%' }}>Resolucion</h3>
-              <FormControl style={{ width: '202px',marginTop: '10px' }}>
-                <InputLabel id="demo-simple-select-label">Largo x Altura</InputLabel>
+              <h3 style={{margin: 0, textAlign: 'center', width: '100%', color:'white' }}>Resolucion</h3>
+              <FormControl 
+                style={{ width: '202px',marginTop: '10px', color: 'white', backdropFilter: 'blur(10px)' }}
+                sx={{
+                  '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'white',
+                  },
+                  '&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'white',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'white',
+                  },
+                }}
+              >
+                <InputLabel style={{color:'white'}}id="demo-simple-select-label">Largo x Altura</InputLabel>
                 <Select style={{ width: '202px' }}
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
@@ -132,8 +147,8 @@ return (
               </FormControl>
             </div>
             {/* Compresión (ahora en el medio) */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '202px', marginTop: '18px' }}>
-              <InputLabel id="demo-simple-select-label" style={{ marginBottom:'8px'}}>Aplicar Compresión</InputLabel>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '202px', marginTop: '18px', backdropFilter: 'blur(10px)', background:'rgba(0, 0, 0, 0.2)', border: '2px solid white', padding: '16px', borderRadius: '20px' }}>
+              <InputLabel id="demo-simple-select-label" style={{ marginBottom:'8px', color:'white'}}>Aplicar Compresión</InputLabel>
               <Switch
                 checked={checked}
                 onChange={clickCompresion}
@@ -143,16 +158,36 @@ return (
             </div>
             {/* Profundidad de bit */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '202px' }}>
-              <h3 style={{margin: 0, textAlign: 'center', width: '100%' }}>Profundidad de bit</h3>
-              <FormControl style={{ width: '202px', marginTop: '10px'  }}>
-                <InputLabel id="bit-depth-select-label">Bits</InputLabel>
+              <h3 style={{margin: 0, textAlign: 'center', width: '100%', color:'white' }}>Profundidad de bit</h3>
+              <FormControl 
+                variant="outlined"
+                style={{ width: '202px', marginTop: '10px', backdropFilter: 'blur(10px)'}}
+                sx={{
+                  '& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'white',
+                  },
+                  '&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'white',
+                  },
+                  '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'white',
+                  },
+                }}
+              >
+                <InputLabel 
+                  style={{color : 'white', zIndex:'11', background: 'rgba(0, 0, 0, 0)', padding: '0 4px'}} // background para mejor contraste
+                  id="bit-depth-select-label"
+                  variant="outlined" // <-- Agregado
+                >
+                  Bits
+                </InputLabel>
                 <Select
                   labelId="bit-depth-select-label"
                   id="bit-depth-select"
                   value={bitDepth}
                   label="Bits"
                   onChange={handleBitDepthChange}
-                  style={{ width: '202px' }}
+                  style={{ width: '202px', color: 'white'}}
                 >
                   <MenuItem value={1}>1 bit</MenuItem>
                   <MenuItem value={8}>8 bits</MenuItem>
@@ -202,7 +237,7 @@ return (
             minHeight: '320px',
             justifyContent: 'center',
             alignItems: 'stretch',
-            background: '#fafafa',
+            background: 'rgba(250, 250, 250, 0)',
             gap: '24px',
             padding: '16px',
             boxSizing: 'border-box',
@@ -216,18 +251,19 @@ return (
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              border: '2px solid #e0e0e0',
+              border: '4px solid rgb(255, 255, 255)',
               borderRadius: '16px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              background: '#fff',
+              boxShadow: '0 2px 8px rgb(255, 255, 255)',
+              background: 'rgba(7, 4, 4, 0.35)',
               margin: '0 4px',
               minWidth: 0,
               padding: '12px 8px',
+              backdropFilter: 'blur(10px)',
               minHeight: '320px',
               maxWidth: '100%',
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '1.1em' }}>Original</div>
+            <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '1.1em', color: 'white' }}>Original</div>
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
               {selectedImageUrl ? (
                 <img
@@ -242,7 +278,7 @@ return (
                   }}
                 />
               ) : (
-                <span style={{ color: '#bbb' }}>Imagen original</span>
+                <span style={{ color: '#fff' }}>Imagen original</span>
               )}
             </div>
           </div>
@@ -253,24 +289,30 @@ return (
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              border: '2px solid #e0e0e0',
+              border: '4px solid rgb(255, 255, 255)',
               borderRadius: '16px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-              background: '#fff',
+              boxShadow: '0 2px 8px rgb(255, 255, 255)',
+              background: 'rgba(7, 4, 4, 0.35)',
               margin: '0 4px',
               minWidth: 0,
               padding: '12px 8px',
+              backdropFilter: 'blur(10px)',
               minHeight: '320px',
               maxWidth: '100%',
               position: 'relative'
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '1.1em' }}>Procesada</div>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', minHeight: '260px' }}>
+            <div style={{ fontWeight: 600, marginBottom: '8px', fontSize: '1.1em', color: 'white' }}>Procesada</div>
+            <div style={{ flex: 1,
+               display: 'flex', 
+               alignItems: 'center', 
+               justifyContent: 'center', 
+               width: '100%', 
+               minHeight: '260px' }}>
               {loading ? (
                 <CircularProgress size={48} sx={{ color: green[500] }} />
               ) : (
-                <span style={{ color: '#bbb' }}>Imagen procesada</span>
+                <span style={{ color: '#fff' }}>Imagen procesada</span>
               )}
             </div>
           </div>
