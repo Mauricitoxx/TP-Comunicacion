@@ -74,11 +74,11 @@ const handleProcessClick = () => {
   };
 
 return (
-    <div style={{ minHeight: '100vh', width: '100vw', backgroundImage: `url(${fondo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-      <div className="entorno">
+    <div style={{ minHeight: '100vh', width: '100vw', backgroundImage: `url(${fondo})`, backgroundSize: 'cover', backgroundPosition: 'center', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
+      <div className="entorno" style={{fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
         <Bar/>
         <div className="titulo">
-          <h1 className="texttitle" style={{ textAlign: 'center', color: 'white' }}>Digitalizador de imagenes</h1>
+          <h1 className="texttitle" style={{fontSize:'2.4rem', textAlign: 'center', color: 'white', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>Digitalizador de imagenes</h1>
         </div>
         <Stack direction="row" spacing={2} style={{ position: 'relative', alignItems: 'center', justifyContent: 'center', top: '20px' }}>
           <input
@@ -102,7 +102,8 @@ return (
             alignItems: 'center',
             marginTop: '16px',
             marginLeft: '1.5vh',
-            gap: '8px'
+            gap: '8px',
+            fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif"
           }}
         >
           <div style={{
@@ -114,8 +115,8 @@ return (
             flexWrap: 'wrap'
           }}>
             {/* Resolución */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '202px' }}>
-              <h3 style={{margin: 0, textAlign: 'center', width: '100%', color:'white' }}>Resolucion</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '202px', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
+              <h3 style={{margin: 0, textAlign: 'center', width: '100%', color:'white', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>Resolucion</h3>
               <FormControl 
                 style={{ width: '202px',marginTop: '10px', color: 'white', backdropFilter: 'blur(10px)' }}
                 sx={{
@@ -157,8 +158,8 @@ return (
               />
             </div>
             {/* Profundidad de bit */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '202px' }}>
-              <h3 style={{margin: 0, textAlign: 'center', width: '100%', color:'white' }}>Profundidad de bit</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '202px', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
+              <h3 style={{margin: 0, textAlign: 'center', width: '100%', color:'white', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>Profundidad de bit</h3>
               <FormControl 
                 variant="outlined"
                 style={{ width: '202px', marginTop: '10px', backdropFilter: 'blur(10px)'}}
@@ -242,6 +243,7 @@ return (
             padding: '16px',
             boxSizing: 'border-box',
             transition: 'all 0.2s',
+            fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif"
           }}
         >
           {/* Imagen original */}

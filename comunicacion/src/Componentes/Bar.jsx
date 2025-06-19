@@ -9,25 +9,26 @@ import { Link } from 'react-router-dom';
 export default function MenuAppBar() {
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static" sx={{ bgcolor: 'rgb(109, 109, 109)' }}>
-        <Toolbar>
-          <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center' }}>
+      <AppBar position="static" sx={{ bgcolor: 'rgb(109, 109, 109)', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
+        <Toolbar sx={{ fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
+          <Box sx={{ display: 'flex', flexGrow: 1, alignItems: 'center', fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
             <Link to="/" style={{ textDecoration: 'none' }}>
               <MenuItem
                 sx={{
                   bgcolor: 'rgb(109, 109, 109)',
                   color: 'white',
-                  fontWeight: 900,
-                  fontSize: '1.58rem',
-                  px: 1.5,
-                  py: 1.2,
+                  fontWeight: 700,
+                  fontSize: '1.5rem',
+                  px: 2.5,
+                  py: 1,
                   borderRadius: 2,
-                  letterSpacing: 1,
+                  letterSpacing: 0.5,
                   transition: 'all 0.2s',
                   '&:hover': {
                     bgcolor: 'rgb(90, 90, 90)',
                     color: '#fff',
                   },
+                  fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif",
                 }}
               >
                 Inicio
@@ -42,31 +43,33 @@ export default function MenuAppBar() {
                 mx: 1.5,
                 borderRadius: 1,
                 opacity: 0.7,
+                fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif",
               }}
             />
             <Link to="/imagenes-procesadas" style={{ textDecoration: 'none' }}>
               <MenuItem
                 sx={{
-                  bgcolor: 'rgb(102, 102, 102)',
+                  bgcolor: 'rgba(102, 102, 102, 0)',
                   color: 'white',
-                  fontWeight: 900,
-                  fontSize: '0.78rem',
-                  px: 3,
-                  py: 1.2,
+                  fontWeight: 700,
+                  fontSize: '1.5rem',
+                  px: 2.5,
+                  py: 1,
                   borderRadius: 2,
-                  letterSpacing: 1,
+                  letterSpacing: 0.5,
                   transition: 'all 0.2s',
                   '&:hover': {
                     bgcolor: 'rgb(90, 90, 90)',
                     color: '#fff',
                   },
+                  fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif",
                 }}
               >
                 Imágenes procesadas
               </MenuItem>
             </Link>
           </Box>
-          <Typography variant="h6" component="div" sx={{ fontSize: '2.08rem' ,ml: 3, color: 'white', fontWeight: 600 }}>
+          <Typography variant="h6" component="div" sx={{ fontSize: '2.08rem' ,ml: 3, color: 'white', fontWeight: 600, fontFamily: "'Montserrat', 'Segoe UI', 'Roboto', sans-serif" }}>
             Photos
           </Typography>
         </Toolbar>
