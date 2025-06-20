@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -8,17 +8,16 @@ from datetime import datetime
 import os
 import uuid
 from dotenv import load_dotenv # Para cargar variables de entorno en desarrollo local
+import io # Para manejar streams de bytes
 
 # Importaciones para Cloudinary
 import cloudinary
 import cloudinary.uploader
 
 # Importaciones para procesamiento de imagen (OpenCV)
-# NOTA: cv2 y numpy solo se necesitan si planeas implementar la lógica real
-# de procesamiento de imagen en el backend. Si solo quieres persistencia,
-# estas y las funciones asociadas pueden eliminarse para un backend más ligero.
 import cv2
 import numpy as np
+import requests # Para descargar imágenes desde URLs
 
 # Cargar variables de entorno desde un archivo .env (solo para desarrollo local)
 # En Render, DEBES configurar estas variables directamente en las variables de entorno de tu servicio.
@@ -107,16 +106,97 @@ def get_db():
     finally:
         db.close()
 
-# --- Funciones de procesamiento de imagen (para referencia, no implementadas completamente) ---
-# Estas funciones requieren que cv2 y numpy estén instalados y configurados correctamente.
-# La lógica de procesamiento real debería descargar la imagen de Cloudinary, procesarla,
-# y luego subirla de nuevo a Cloudinary (o servirla directamente).
+# --- Funciones de procesamiento de imagen ---
+
 def quantize_image(image, bits_per_channel):
-    """Función de cuantificación de imagen. Requiere OpenCV."""
-    if bits_per_channel >= 8:
+    """
+    Cuantiza cada canal de una imagen.
+    Reduce el número de bits por canal, lo que reduce la cantidad de colores.
+    """
+    if bits_per_channel >= 8: # Si ya es 8 bits o más, no hace falta cuantizar
         return image
+    
+    # Calcular el número de niveles para la cuantización
     levels = 2 ** bits_per_channel
+    
+    # Calcular el factor de escala para reducir los valores de píxel
+    # y luego escalarlos de nuevo al rango 0-255 con los nuevos niveles.
+    # Ejemplo: para 1 bit, levels=2. (256 // 2) = 128. (255 // (2-1)) = 255.
+    # Los píxeles se agrupan en 0 o 128 (si es blanco y negro)
     return (image // (256 // levels) * (255 // (levels - 1))).astype(np.uint8)
+
+
+async def download_image_from_url(image_url: str):
+    """Descarga una imagen de una URL y devuelve sus bytes."""
+    try:
+        response = requests.get(image_url, stream=True)
+        response.raise_for_status() # Lanza una excepción para códigos de estado de error HTTP
+        image_bytes = response.content
+        return image_bytes
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Error al descargar la imagen de Cloudinary: {e}")
+
+async def process_image(image_id: str, resolution: str, bits_per_channel: int, quality: int = None):
+    """
+    Función central para el procesamiento de imágenes (digitalización/compresión).
+    Descarga la imagen, la procesa con OpenCV y devuelve los bytes resultantes.
+    """
+    db = SessionLocal()
+    try:
+        image_data = db.query(Image).filter(Image.image_id == image_id).first()
+        if not image_data:
+            raise HTTPException(status_code=404, detail="Imagen no encontrada en la base de datos.")
+        
+        image_url = image_data.image_url
+
+        # 1. Descargar la imagen original de Cloudinary
+        image_bytes = await download_image_from_url(image_url)
+
+        # 2. Convertir bytes a un array de numpy para OpenCV
+        np_array = np.frombuffer(image_bytes, np.uint8)
+        image = cv2.imdecode(np_array, cv2.IMREAD_COLOR)
+
+        if image is None:
+            raise HTTPException(status_code=500, detail="No se pudo decodificar la imagen descargada.")
+
+        # 3. Validar y parsear resolución
+        try:
+            width, height = map(int, resolution.split("x"))
+            if width <= 0 or height <= 0:
+                raise ValueError
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Resolución inválida. Usa formato 'anchoxalto' (ej: '100x100')")
+
+        # 4. Validar bits_per_channel
+        if bits_per_channel <= 0 or bits_per_channel > 8: # OpenCV normalmente trabaja con 8 bits por canal para la mayoría de ops
+            raise HTTPException(status_code=400, detail="bits_per_channel debe estar entre 1 y 8 para cuantificación con este método.")
+        
+        # 5. Muestreo (redimensionamiento)
+        image_resized = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
+
+        # 6. Cuantización por canal
+        # Dividir los canales B, G, R
+        b, g, r = cv2.split(image_resized)
+        b_quantized = quantize_image(b, bits_per_channel)
+        g_quantized = quantize_image(g, bits_per_channel)
+        r_quantized = quantize_image(r, bits_per_channel)
+        
+        # Unir los canales cuantizados de nuevo
+        image_processed = cv2.merge([b_quantized, g_quantized, r_quantized])
+
+        # 7. Codificar la imagen procesada a bytes (JPEG)
+        # La calidad solo aplica si es compresión (quality is not None)
+        encode_params = [int(cv2.IMWRITE_JPEG_QUALITY), quality] if quality is not None else []
+        success, encoded_image = cv2.imencode(".jpg", image_processed, encode_params)
+
+        if not success:
+            raise HTTPException(status_code=500, detail="Error al codificar la imagen procesada.")
+
+        return io.BytesIO(encoded_image.tobytes()) # Devuelve un stream de bytes
+
+    finally:
+        db.close()
+
 
 # --- Endpoints de la API ---
 
@@ -198,33 +278,35 @@ def get_original_image(image_id: str):
         db.close()
 
 @app.get("/image/{image_id}/digitized")
-def get_digitized(image_id: str, resolution: str, bits_per_channel: int):
+async def get_digitized(image_id: str, resolution: str, bits_per_channel: int):
     """
     Endpoint para obtener una imagen digitalizada.
-    NOTA: La lógica de procesamiento de imágenes con OpenCV NO está implementada aquí.
-    Esto requeriría:
-    1. Descargar la imagen original de Cloudinary usando la image_url.
-    2. Cargarla con cv2.imdecode (desde bytes).
-    3. Aplicar el muestreo y la cuantificación.
-    4. Subir la imagen procesada de nuevo a Cloudinary (quizás con una transformación o nuevo nombre).
-    5. Devolver una redirección a la nueva URL de Cloudinary.
+    Descarga la imagen original de Cloudinary, aplica muestreo y cuantificación con OpenCV,
+    y devuelve la imagen procesada como una respuesta de archivo.
     """
-    raise HTTPException(
-        status_code=501, 
-        detail="Funcionalidad de digitalización no implementada. Requiere descarga, procesamiento (OpenCV) y re-almacenamiento/servido de la imagen."
-    )
+    try:
+        processed_image_stream = await process_image(image_id, resolution, bits_per_channel)
+        return FileResponse(processed_image_stream, media_type="image/jpeg")
+    except HTTPException as e:a
+        raise e # Relanza HTTPExceptions generadas por process_image
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en el procesamiento de digitalización: {str(e)}")
+
 
 @app.get("/image/{image_id}/compressed")
-def get_compressed(image_id: str, resolution: str, bits_per_channel: int, quality: int):
+async def get_compressed(image_id: str, resolution: str, bits_per_channel: int, quality: int):
     """
     Endpoint para obtener una imagen comprimida.
-    NOTA: La lógica de procesamiento de imágenes con OpenCV NO está implementada aquí.
-    Ver las notas en get_digitized para la complejidad de esta implementación.
-    Cloudinary ofrece transformaciones al vuelo que podrían manejar esto más fácilmente.
+    Descarga la imagen original de Cloudinary, aplica muestreo, cuantificación y compresión JPEG con OpenCV,
+    y devuelve la imagen procesada como una respuesta de archivo.
     """
-    raise HTTPException(
-        status_code=501, 
-        detail="Funcionalidad de compresión no implementada. Requiere descarga, procesamiento (OpenCV) y re-almacenamiento/servido de la imagen."
-    )
-
-
+    if not 0 <= quality <= 100:
+        raise HTTPException(status_code=400, detail="quality debe estar entre 0 y 100")
+        
+    try:
+        processed_image_stream = await process_image(image_id, resolution, bits_per_channel, quality)
+        return FileResponse(processed_image_stream, media_type="image/jpeg")
+    except HTTPException as e:
+        raise e # Relanza HTTPExceptions generadas por process_image
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error en el procesamiento de compresión: {str(e)}")
