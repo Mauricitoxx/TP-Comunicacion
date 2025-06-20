@@ -39,7 +39,7 @@ const CargarImagen = async (event) => {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8000/upload", {
+      const response = await fetch("https://tp-comunicacion.onrender.com/upload", {
         method: "POST",
         body: formData,
       });
@@ -95,8 +95,8 @@ const handleProcessClick = async () => {
   const resolution = resolutionMap[age];
   const bits = Number(bitDepth);
   const endpoint = checked
-    ? `http://localhost:8000/image/${imageId}/compressed?resolution=${resolution}&bits_per_channel=${bits}&quality=70`
-    : `http://localhost:8000/image/${imageId}/digitized?resolution=${resolution}&bits_per_channel=${bits}`;
+    ? `https://tp-comunicacion.onrender.com/image/${imageId}/compressed?resolution=${resolution}&bits_per_channel=${bits}&quality=70`
+    : `https://tp-comunicacion.onrender.com/image/${imageId}/digitized?resolution=${resolution}&bits_per_channel=${bits}`;
 
   console.log("Procesando imagen con ID:", imageId);
   console.log("Usando resolución:", resolution);
