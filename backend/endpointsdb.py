@@ -1,5 +1,5 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, Response # Importar Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -286,8 +286,9 @@ async def get_digitized(image_id: str, resolution: str, bits_per_channel: int):
     """
     try:
         processed_image_stream = await process_image(image_id, resolution, bits_per_channel)
-        return FileResponse(processed_image_stream, media_type="image/jpeg")
-    except HTTPException as e: # Corregido: eliminado 'a' extra
+        # Devolver el contenido del stream de bytes directamente
+        return Response(content=processed_image_stream.getvalue(), media_type="image/jpeg")
+    except HTTPException as e:
         raise e # Relanza HTTPExceptions generadas por process_image
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el procesamiento de digitalización: {str(e)}")
@@ -305,7 +306,8 @@ async def get_compressed(image_id: str, resolution: str, bits_per_channel: int, 
         
     try:
         processed_image_stream = await process_image(image_id, resolution, bits_per_channel, quality)
-        return FileResponse(processed_image_stream, media_type="image/jpeg")
+        # Devolver el contenido del stream de bytes directamente
+        return Response(content=processed_image_stream.getvalue(), media_type="image/jpeg")
     except HTTPException as e:
         raise e # Relanza HTTPExceptions generadas por process_image
     except Exception as e:
