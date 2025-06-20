@@ -287,7 +287,7 @@ async def get_digitized(image_id: str, resolution: str, bits_per_channel: int):
     try:
         processed_image_stream = await process_image(image_id, resolution, bits_per_channel)
         return FileResponse(processed_image_stream, media_type="image/jpeg")
-    except HTTPException as e:a
+    except HTTPException as e: # Corregido: eliminado 'a' extra
         raise e # Relanza HTTPExceptions generadas por process_image
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el procesamiento de digitalización: {str(e)}")
