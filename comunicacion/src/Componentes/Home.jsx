@@ -39,7 +39,7 @@ const CargarImagen = async (event) => {
     formData.append("file", file);
 
     try {
-      const response = await fetch("https://tp-comunicacion.onrender.com/upload_image_url", {
+      const response = await fetch("https://tp-comunicacion.onrender.com/upload", {
         method: "POST",
         body: formData,
       });
