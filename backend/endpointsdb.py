@@ -1,7 +1,7 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, Response # Importar Response
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
+from fastapi.responses import JSONResponse, RedirectResponse, FileResponse, Response
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, String, DateTime
+from sqlalchemy import create_engine, Column, String, DateTime, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -57,6 +57,9 @@ class Image(Base):
     image_id = Column(String, primary_key=True, index=True)
     image_url = Column(String, nullable=False) # URL de la imagen en Cloudinary
     upload_time = Column(DateTime, default=datetime.utcnow)
+    # Nuevas columnas para almacenar la resolución y profundidad de bits ORIGINALES
+    original_resolution = Column(String, nullable=True) # Ej: "800x600"
+    original_bits_per_channel = Column(Integer, nullable=True) # Ej: 8
 
 # --- Configuración de Cloudinary ---
 CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME")
@@ -90,9 +93,13 @@ def startup_event():
         raise
 
     # Crear tablas de la base de datos PostgreSQL
-    print("Intentando crear tablas de la base de datos PostgreSQL...")
+    # Base.metadata.create_all() creará las columnas nuevas si no existen.
+    # Si la tabla ya existe y tiene datos, y las nuevas columnas son NOT NULL,
+    # necesitarías una migración de base de datos real. Como son NULLABLE=TRUE aquí,
+    # debería funcionar la adición de columnas.
+    print("Intentando crear/actualizar tablas de la base de datos PostgreSQL...")
     Base.metadata.create_all(bind=engine)
-    print("Tablas de la base de datos PostgreSQL creadas o ya existen.")
+    print("Tablas de la base de datos PostgreSQL creadas o actualizadas.")
 
 # Dependencia para obtener una sesión de base de datos en cada request
 def get_db():
@@ -121,8 +128,6 @@ def quantize_image(image, bits_per_channel):
     
     # Calcular el factor de escala para reducir los valores de píxel
     # y luego escalarlos de nuevo al rango 0-255 con los nuevos niveles.
-    # Ejemplo: para 1 bit, levels=2. (256 // 2) = 128. (255 // (2-1)) = 255.
-    # Los píxeles se agrupan en 0 o 128 (si es blanco y negro)
     return (image // (256 // levels) * (255 // (levels - 1))).astype(np.uint8)
 
 
@@ -201,16 +206,25 @@ async def process_image(image_id: str, resolution: str, bits_per_channel: int, q
 # --- Endpoints de la API ---
 
 @app.post("/upload", response_model=dict)
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(
+    file: UploadFile = File(...),
+    original_resolution: str = Form(...), # Nuevo parámetro de formulario
+    original_bits_per_channel: int = Form(...) # Nuevo parámetro de formulario
+):
     """
     Recibe un archivo de imagen, lo sube a Cloudinary,
-    y guarda su URL en la base de datos PostgreSQL.
+    y guarda su URL junto con la resolución y profundidad de bits originales en la base de datos PostgreSQL.
     """
     image_id = str(uuid.uuid4())
     
     try:
-        # Cloudinary necesita un archivo o bytes. file.file es un objeto BytesIO.
-        # Puedes añadir un folder para organizar tus imágenes en Cloudinary
+        # Validar los parámetros de resolución y bits_per_channel antes de usarlos
+        if not original_resolution or "x" not in original_resolution:
+            raise HTTPException(status_code=400, detail="Resolución original inválida. Formato 'anchoxalto' (ej: '100x100').")
+        if original_bits_per_channel <= 0:
+            raise HTTPException(status_code=400, detail="Profundidad de bits original debe ser positiva.")
+
+        # Subir el archivo a Cloudinary
         upload_result = cloudinary.uploader.upload(file.file, folder="app_images") 
         
         image_url = upload_result.get("secure_url") # Obtiene la URL HTTPS segura
@@ -220,20 +234,31 @@ async def upload_image(file: UploadFile = File(...)):
         
         print(f"Imagen subida a Cloudinary: {image_url}")
 
-        # Guardar la URL en la base de datos PostgreSQL
+        # Guardar la URL, resolución y profundidad de bits originales en la base de datos PostgreSQL
         db = SessionLocal()
         try:
-            new_image = Image(image_id=image_id, image_url=image_url)
+            new_image = Image(
+                image_id=image_id, 
+                image_url=image_url,
+                original_resolution=original_resolution, # Guardar la resolución original
+                original_bits_per_channel=original_bits_per_channel # Guardar la profundidad de bits original
+            )
             db.add(new_image)
             db.commit()
             db.refresh(new_image)
-            print(f"URL de imagen guardada en PostgreSQL: {image_id}")
-            return JSONResponse(content={"image_id": image_id, "image_url": image_url}, status_code=201)
+            print(f"URL e info de imagen guardada en PostgreSQL: {image_id}")
+            return JSONResponse(
+                content={
+                    "image_id": image_id, 
+                    "image_url": image_url,
+                    "original_resolution": original_resolution,
+                    "original_bits_per_channel": original_bits_per_channel
+                }, 
+                status_code=201
+            )
         except Exception as db_error:
             db.rollback()
-            # Si falla guardar en DB, considera eliminar de Cloudinary para evitar huérfanos
-            # Esto es más complejo en Cloudinary, podrías necesitar el public_id de upload_result
-            # cloudinary.uploader.destroy(upload_result.get("public_id"))
+            # Considera implementar rollback en Cloudinary (borrar la imagen subida si falla la DB)
             print(f"Error al guardar URL en la base de datos: {db_error}. Considera implementar rollback en Cloudinary.")
             raise HTTPException(status_code=500, detail=f"Error al guardar URL en la base de datos: {db_error}")
         finally:
@@ -246,13 +271,21 @@ async def upload_image(file: UploadFile = File(...)):
 @app.get("/images", response_model=dict)
 def get_images():
     """
-    Devuelve una lista de todas las imágenes (sus IDs y URLs) almacenadas en la base de datos.
+    Devuelve una lista de todas las imágenes (sus IDs, URLs, resolución y profundidad de bits originales)
+    almacenadas en la base de datos.
     """
     db = SessionLocal()
     try:
         images = db.query(Image).order_by(Image.upload_time.desc()).all()
+        # Incluir los nuevos campos en la respuesta
         return {"images": [
-            {"image_id": img.image_id, "image_url": img.image_url, "upload_time": img.upload_time.isoformat()}
+            {
+                "image_id": img.image_id, 
+                "image_url": img.image_url, 
+                "upload_time": img.upload_time.isoformat(),
+                "original_resolution": img.original_resolution, # Devolver la resolución original
+                "original_bits_per_channel": img.original_bits_per_channel # Devolver la profundidad de bits original
+            }
             for img in images
         ]}
     finally:
@@ -288,8 +321,8 @@ async def get_digitized(image_id: str, resolution: str, bits_per_channel: int):
         processed_image_stream = await process_image(image_id, resolution, bits_per_channel)
         # Devolver el contenido del stream de bytes directamente
         return Response(content=processed_image_stream.getvalue(), media_type="image/jpeg")
-    except HTTPException as e:
-        raise e # Relanza HTTPExceptions generadas por process_image
+    except HTTPException as e: # Relanza HTTPExceptions generadas por process_image
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error en el procesamiento de digitalización: {str(e)}")
 
@@ -306,7 +339,6 @@ async def get_compressed(image_id: str, resolution: str, bits_per_channel: int, 
         
     try:
         processed_image_stream = await process_image(image_id, resolution, bits_per_channel, quality)
-        # Devolver el contenido del stream de bytes directamente
         return Response(content=processed_image_stream.getvalue(), media_type="image/jpeg")
     except HTTPException as e:
         raise e # Relanza HTTPExceptions generadas por process_image
