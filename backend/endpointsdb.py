@@ -1,167 +1,137 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import FileResponse
-import cv2
-import numpy as np
-import os
-import uuid
-import sqlite3
-from datetime import datetime
-from fastapi.middleware.cors import CORSMiddleware
+ERROR:    Traceback (most recent call last):
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 3297, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1264, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 713, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 179, in _do_get
+    with util.safe_reraise():
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 390, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 675, in __init__
+    self.__connect()
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 901, in __connect
+    with util.safe_reraise():
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 897, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\create.py", line 646, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 625, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\psycopg2\__init__.py", line 
+122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+psycopg2.OperationalError: could not translate host name "dpg-d1aqti0dl3ps73e08upg-a" to address: Host desconocido.
 
-app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "https://tp-comunicacion.vercel.app"
-    ],  # o ["http://localhost:3000"]
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+The above exception was the direct cause of the following exception:
 
-# Directorio para almacenar imágenes
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+Traceback (most recent call last):
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\starlette\routing.py", line 
+692, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\starlette\routing.py", line 
+569, in __aenter__
+    await self._router.startup()
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\starlette\routing.py", line 
+671, in startup
+    handler()
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\endpointsdb.py", line 74, in startup_event
+    Base.metadata.create_all(bind=engine)
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\sql\schema.py", line 5924, in create_all
+    bind._run_ddl_visitor(
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 3247, in _run_ddl_visitor
+    with self.begin() as conn:
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 3237, in begin
+    with self.connect() as conn:
+         ^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 3273, in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 147, in __init__
+    Connection._handle_dbapi_exception_noconnection(
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 2436, in _handle_dbapi_exception_noconnection
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 145, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\base.py", 
+line 3297, in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 449, in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 1264, in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 713, in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 179, in _do_get
+    with util.safe_reraise():
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\impl.py", line 177, in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 390, in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 675, in __init__
+    self.__connect()
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 901, in __connect
+    with util.safe_reraise():
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\util\langhelpers.py", line 224, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\pool\base.py", line 897, in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\create.py", line 646, in connect
+    return dialect.connect(*cargs, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 625, in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Facultad\Facultad 2025\Comunicacion de Datos\TP integrado\TP-Comunicacion\backend\venv\Lib\site-packages\psycopg2\__init__.py", line 
+122, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "dpg-d1aqti0dl3ps73e08upg-a" to address: Host desconocido.
 
-# Conexión a la base de datos SQLite
-DB_FILE = "images.db"
-conn = sqlite3.connect(DB_FILE, check_same_thread=False)
-cursor = conn.cursor()
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
 
-# Crear tabla si no existe
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS images (
-        image_id TEXT PRIMARY KEY,
-        file_path TEXT,
-        upload_time TEXT
-    )
-''')
-conn.commit()
-
-# Función para quantizar cada canal
-def quantize_image(image, bits_per_channel):
-    if bits_per_channel >= 8:
-        return image
-    levels = 2 ** bits_per_channel
-    return (image // (256 // levels) * (255 // (levels - 1))).astype(np.uint8)
-
-# Subir imagen
-@app.post("/upload")
-async def upload_image(file: UploadFile = File(...)):
-    image_id = str(uuid.uuid4())
-    file_path = os.path.join(UPLOAD_DIR, f"{image_id}.jpg")
-    with open(file_path, "wb") as f:
-        f.write(await file.read())
-    
-    # Guardar en la base de datos
-    upload_time = datetime.now().isoformat()
-    cursor.execute("INSERT INTO images (image_id, file_path, upload_time) VALUES (?, ?, ?)", 
-                   (image_id, file_path, upload_time))
-    conn.commit()
-    
-    return {"image_id": image_id}
-
-# Obtener lista de imágenes para el carrusel
-@app.get("/images")
-def get_images():
-    cursor.execute("SELECT image_id FROM images ORDER BY upload_time DESC")
-    images = cursor.fetchall()
-    return {"images": [image[0] for image in images]}
-
-# Obtener imagen original
-@app.get("/image/{image_id}/original")
-def get_original(image_id: str):
-    cursor.execute("SELECT file_path FROM images WHERE image_id = ?", (image_id,))
-    result = cursor.fetchone()
-    if not result:
-        raise HTTPException(status_code=404, detail="Imagen no encontrada")
-    file_path = result[0]
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Archivo no encontrado")
-    return FileResponse(file_path, media_type="image/jpeg")
-
-# Obtener imagen digitalizada
-@app.get("/image/{image_id}/digitized")
-def get_digitized(image_id: str, resolution: str, bits_per_channel: int):
-    cursor.execute("SELECT file_path FROM images WHERE image_id = ?", (image_id,))
-    result = cursor.fetchone()
-    if not result:
-        raise HTTPException(status_code=404, detail="Imagen no encontrada")
-    file_path = result[0]
-    
-    # Cargar imagen
-    image = cv2.imread(file_path)
-    
-    # Validar y parsear resolución
-    try:
-        width, height = map(int, resolution.split("x"))
-        if width <= 0 or height <= 0:
-            raise ValueError
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Resolución inválida. Usa formato 'anchoxalto' (ej: '100x100')")
-    
-    # Validar bits_per_channel
-    if bits_per_channel <= 0:
-        raise HTTPException(status_code=400, detail="bits_per_channel debe ser positivo")
-    
-    # Muestreo (redimensionamiento)
-    image_resized = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
-    
-    # Cuantización por canal
-    b, g, r = cv2.split(image_resized)
-    b_quantized = quantize_image(b, bits_per_channel)
-    g_quantized = quantize_image(g, bits_per_channel)
-    r_quantized = quantize_image(r, bits_per_channel)
-    image_quantized = cv2.merge([b_quantized, g_quantized, r_quantized])
-    
-    # Guardar temporalmente
-    temp_file = os.path.join(UPLOAD_DIR, f"{image_id}_digitized.jpg")
-    cv2.imwrite(temp_file, image_quantized)
-    return FileResponse(temp_file, media_type="image/jpeg")
-
-# Obtener imagen comprimida
-@app.get("/image/{image_id}/compressed")
-def get_compressed(image_id: str, resolution: str, bits_per_channel: int, quality: int):
-    cursor.execute("SELECT file_path FROM images WHERE image_id = ?", (image_id,))
-    result = cursor.fetchone()
-    if not result:
-        raise HTTPException(status_code=404, detail="Imagen no encontrada")
-    file_path = result[0]
-    
-    # Cargar imagen
-    image = cv2.imread(file_path)
-    
-    # Validar parámetros
-    try:
-        width, height = map(int, resolution.split("x"))
-        if width <= 0 or height <= 0:
-            raise ValueError
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Resolución inválida. Usa formato 'anchoxalto' (ej: '100x100')")
-    
-    if bits_per_channel <= 0:
-        raise HTTPException(status_code=400, detail="bits_per_channel debe ser positivo")
-    if not 0 <= quality <= 100:
-        raise HTTPException(status_code=400, detail="quality debe estar entre 0 y 100")
-    
-    # Muestreo
-    image_resized = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
-    
-    # Cuantización
-    b, g, r = cv2.split(image_resized)
-    b_quantized = quantize_image(b, bits_per_channel)
-    g_quantized = quantize_image(g, bits_per_channel)
-    r_quantized = quantize_image(r, bits_per_channel)
-    image_quantized = cv2.merge([b_quantized, g_quantized, r_quantized])
-    
-    # Guardar con compresión JPEG
-    temp_file = os.path.join(UPLOAD_DIR, f"{image_id}_compressed.jpg")
-    cv2.imwrite(temp_file, image_quantized, [cv2.IMWRITE_JPEG_QUALITY, quality])
-    return FileResponse(temp_file, media_type="image/jpeg")
-
-# Cerrar conexión a la base de datos al apagar la aplicación
-@app.on_event("shutdown")
-def shutdown_event():
-    conn.close()
+ERROR:    Application startup failed. Exiting.
