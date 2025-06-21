@@ -10,6 +10,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress'; // Para indicar carga en el modal
+import DownloadIcon from '@mui/icons-material/Download';
 
 function ImagenesProcesadas() {
   const [images, setImages] = useState([]);
@@ -99,6 +100,17 @@ function ImagenesProcesadas() {
     setVersions({ original: '', compressed: '', digitized: '' }); // Limpiar URLs
   };
 
+  // Función para descargar una imagen por URL
+  const handleDownload = (url, filename) => {
+    if (!url || url === 'error') return;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div style={{ minHeight: '100vh', width: '100vw', position: 'relative', overflow: 'hidden', backgroundImage: `url(${fondo})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
       {/* Bar en la parte superior */}
@@ -153,8 +165,16 @@ function ImagenesProcesadas() {
         <DialogContent style={{ display: 'flex', flexDirection: 'row', gap: 24, justifyContent: 'center', alignItems: 'center' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>Original</div>
-            {/* Si item.img ya es la URL de Cloudinary, no necesitas una llamada adicional aquí */}
             <img src={versions.original} alt="original" style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, boxShadow: '0 2px 12px #0004' }} />
+            <Button
+              variant="outlined"
+              startIcon={<DownloadIcon />}
+              style={{ marginTop: 10 }}
+              onClick={() => handleDownload(versions.original, `original_${selected?.id || ''}.jpg`)}
+              disabled={!versions.original || versions.original === 'error'}
+            >
+              Descargar
+            </Button>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontWeight: 700, marginBottom: 8 }}>Comprimida</div>
@@ -163,7 +183,18 @@ function ImagenesProcesadas() {
             ) : versions.compressed === 'error' ? (
               <div style={{ color: 'red', fontSize: '0.9rem' }}>Error al cargar</div>
             ) : (
-              <img src={versions.compressed} alt="compressed" style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, boxShadow: '0 2px 12px #0004' }} />
+              <>
+                <img src={versions.compressed} alt="compressed" style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, boxShadow: '0 2px 12px #0004' }} />
+                <Button
+                  variant="outlined"
+                  startIcon={<DownloadIcon />}
+                  style={{ marginTop: 10 }}
+                  onClick={() => handleDownload(versions.compressed, `compressed_${selected?.id || ''}.jpg`)}
+                  disabled={!versions.compressed || versions.compressed === 'error'}
+                >
+                  Descargar
+                </Button>
+              </>
             )}
           </div>
           <div style={{ textAlign: 'center' }}>
@@ -173,7 +204,18 @@ function ImagenesProcesadas() {
             ) : versions.digitized === 'error' ? (
               <div style={{ color: 'red', fontSize: '0.9rem' }}>Error al cargar</div>
             ) : (
-              <img src={versions.digitized} alt="digitized" style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, boxShadow: '0 2px 12px #0004' }} />
+              <>
+                <img src={versions.digitized} alt="digitized" style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, boxShadow: '0 2px 12px #0004' }} />
+                <Button
+                  variant="outlined"
+                  startIcon={<DownloadIcon />}
+                  style={{ marginTop: 10 }}
+                  onClick={() => handleDownload(versions.digitized, `digitized_${selected?.id || ''}.jpg`)}
+                  disabled={!versions.digitized || versions.digitized === 'error'}
+                >
+                  Descargar
+                </Button>
+              </>
             )}
           </div>
         </DialogContent>
