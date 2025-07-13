@@ -161,63 +161,18 @@ function ImagenesProcesadas() {
       </div>
       {/* Modal de versiones */}
       <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth>
-        <DialogTitle>Versiones de la imagen</DialogTitle>
-        <DialogContent style={{ display: 'flex', flexDirection: 'row', gap: 24, justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Original</div>
-            <img src={versions.original} alt="original" style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, boxShadow: '0 2px 12px #0004' }} />
-            <Button
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              style={{ marginTop: 10 }}
-              onClick={() => handleDownload(versions.original, `original_${selected?.id || ''}.jpg`)}
-              disabled={!versions.original || versions.original === 'error'}
-            >
-              Descargar
-            </Button>
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Comprimida</div>
-            {loadingVersions ? (
-              <CircularProgress size={40} />
-            ) : versions.compressed === 'error' ? (
-              <div style={{ color: 'red', fontSize: '0.9rem' }}>Error al cargar</div>
-            ) : (
-              <>
-                <img src={versions.compressed} alt="compressed" style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, boxShadow: '0 2px 12px #0004' }} />
-                <Button
-                  variant="outlined"
-                  startIcon={<DownloadIcon />}
-                  style={{ marginTop: 10 }}
-                  onClick={() => handleDownload(versions.compressed, `compressed_${selected?.id || ''}.jpg`)}
-                  disabled={!versions.compressed || versions.compressed === 'error'}
-                >
-                  Descargar
-                </Button>
-              </>
-            )}
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>Digitalizada</div>
-            {loadingVersions ? (
-              <CircularProgress size={40} />
-            ) : versions.digitized === 'error' ? (
-              <div style={{ color: 'red', fontSize: '0.9rem' }}>Error al cargar</div>
-            ) : (
-              <>
-                <img src={versions.digitized} alt="digitized" style={{ maxWidth: 220, maxHeight: 220, borderRadius: 10, boxShadow: '0 2px 12px #0004' }} />
-                <Button
-                  variant="outlined"
-                  startIcon={<DownloadIcon />}
-                  style={{ marginTop: 10 }}
-                  onClick={() => handleDownload(versions.digitized, `digitized_${selected?.id || ''}.jpg`)}
-                  disabled={!versions.digitized || versions.digitized === 'error'}
-                >
-                  Descargar
-                </Button>
-              </>
-            )}
-          </div>
+        <DialogTitle>Imagen</DialogTitle>
+        <DialogContent style={{ display: 'flex', flexDirection: 'column', gap: 24, justifyContent: 'center', alignItems: 'center' }}>
+          <img src={versions.original} alt="original" style={{ maxWidth: '80vw', maxHeight: '60vh', borderRadius: '24px', boxShadow: '0 4px 32px #0006', objectFit: 'cover' }} />
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            style={{ marginTop: 18 }}
+            onClick={() => handleDownload(versions.original, `original_${selected?.id || ''}.jpg`)}
+            disabled={!versions.original || versions.original === 'error'}
+          >
+            Descargar
+          </Button>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} color="primary" variant="contained">Cerrar</Button>
